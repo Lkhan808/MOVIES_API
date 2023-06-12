@@ -10,3 +10,6 @@ RUN pip install -r /dj_movies/req.txt
 
 COPY . /dj_movies/
 
+RUN 'python manage.py makemigrations'
+RUN 'python manage.py migrate'
+
