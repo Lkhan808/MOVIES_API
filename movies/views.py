@@ -1,10 +1,10 @@
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework import generics
 
 from movies.models import Movies, Director, Genre
-from movies.serializers import MovieSerializer, MovieRetrieveSerializer, DirectorSerializer, \
-    DirectorRetrieveSerializer, GenreSerializer, MovieValidateSerializer
+from movies.serializers import *
 
 
 @api_view(["GET", "POST"])
@@ -68,7 +68,7 @@ def directors_list_create_view(request):
 def directors_api_put_view(request, **kwargs):
     director = Director.objects.get(id=kwargs['id'])
     if request.method == 'GET':
-        data = DirectorRetrieveSerializer(director, many=False)
+        data = DirectorRetrieveSerializer(director, many=False).data
         return Response(data=data, status=status.HTTP_200_OK)
     if request.method == 'PUT':
         data = request.data
@@ -113,3 +113,18 @@ def genre_api_put_view(request, **kwargs):
         genre.delete()
         return Response({'message': f'Genre {genre.name} is deleted'}, status=status.HTTP_204_NO_CONTENT)
 
+
+class MovieDirectorAPIView(generics.ListAPIView):
+    serializer_class = MovieSerializer
+
+    def get_queryset(self):
+        director = self.kwargs.get('director_name')
+        queryset = Movies.objects.filter(director=director)
+        return queryset
+
+
+@api_view()
+def movie_genre_api_view(request, genre):
+    movies = Movies.objects.filter(genre=genre)
+    data = MovieSerializer(movies, many=True).data
+    return Response(data=data, status=status.HTTP_200_OK)
